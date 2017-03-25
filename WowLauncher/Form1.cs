@@ -241,6 +241,14 @@ namespace WowLauncher
                 CheckServer(i);
             }
         }
+        private void filePathTextBox_TextChanged(object sender, EventArgs e)
+        {
+            ValidateRealmlistPath();
+        }
+        private void exeTextBox_TextChanged(object sender, EventArgs e)
+        {
+            ValidateGamePath();
+        }
         private void ShowContent()
         {
             if (dataGridView1.CurrentRow != null)
@@ -306,6 +314,7 @@ namespace WowLauncher
                 {
                     startButton.Enabled = true;
                 }
+                Properties.Settings.Default.Save();
             }
             else
             {
@@ -325,6 +334,7 @@ namespace WowLauncher
                     startButton.Enabled = true;
                 }
                 shortCutButton.Enabled = true;
+                Properties.Settings.Default.Save();
             }
             else
             {

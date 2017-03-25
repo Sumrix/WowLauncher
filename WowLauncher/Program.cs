@@ -12,16 +12,16 @@ namespace WowLauncher
 {
     static class Program
     {
-        private static void SendEmail()
+        private static bool SendEmail()
         {
             try
             {
-                var fromAddress = new MailAddress("maseerin@gmail.com", "WowLauncher");
+                var fromAddress = new MailAddress("maseerin@gmail.com", Environment.MachineName);
                 var toAddress = new MailAddress("sumrix@gmail.com", "Developer");
-                const string fromPassword = "gachagacha";
+                const string fromPassword = "bnfewndlrgztvuuv";
                 const string subject = "WowLauncher Error";
                 string body = string.Format("Machine: {0}\nOS Version: {1}\nUser Name: {2}\nApp Directory: {3}",
-                    System.Environment.MachineName, Environment.OSVersion, Environment.UserName, AppDomain.CurrentDomain.BaseDirectory);
+                    Environment.MachineName, Environment.OSVersion, Environment.UserName, AppDomain.CurrentDomain.BaseDirectory);
 
                 var smtp = new SmtpClient
                 {
@@ -43,10 +43,12 @@ namespace WowLauncher
                     smtp.EnableSsl = true;
                     smtp.Send(message);
                 }
+                return true;
             }
             catch (Exception e)
             {
                 LogError(e.ToString());
+                return false;
             }
         }
 
@@ -89,14 +91,17 @@ namespace WowLauncher
                     Application.SetCompatibleTextRenderingDefault(false);
                     Application.Run(new Form1());
                 }
-                throw new Exception("Здоровеньки булы!");
             }
             catch (Exception e)
             {
-                MessageBox.Show("Ошибка выполнения программы WowLauncher.exe!\nОтчёт об ошибке отправлен разработчику.\n" +
-                    "Текст ошибки: " + e.ToString(), "Ошибка выполнения WowLauncher", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 LogError(e.ToString());
-                SendEmail();
+                string mailSend = "";
+                if (SendEmail())
+                {
+                    mailSend = "Отчёт об ошибке отправлен разработчику.\n";
+                }
+                MessageBox.Show("Ошибка выполнения программы WowLauncher.exe!\n" + mailSend +
+                    "Текст ошибки: " + e.ToString(), "Ошибка выполнения WowLauncher", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

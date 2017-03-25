@@ -73,6 +73,7 @@
             this.filePathTextBox.Name = "filePathTextBox";
             this.filePathTextBox.Size = new System.Drawing.Size(461, 20);
             this.filePathTextBox.TabIndex = 0;
+            this.filePathTextBox.TextChanged += new System.EventHandler(this.filePathTextBox_TextChanged);
             this.filePathTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.filePathTextBox_KeyDown);
             this.filePathTextBox.Validating += new System.ComponentModel.CancelEventHandler(this.filePathTextBox_Validating);
             // 
@@ -261,6 +262,7 @@
             this.exeTextBox.Name = "exeTextBox";
             this.exeTextBox.Size = new System.Drawing.Size(461, 20);
             this.exeTextBox.TabIndex = 0;
+            this.exeTextBox.TextChanged += new System.EventHandler(this.exeTextBox_TextChanged);
             this.exeTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.exeTextBox_KeyDown);
             this.exeTextBox.Validating += new System.ComponentModel.CancelEventHandler(this.exeTextBox_Validating);
             // 
