@@ -55,8 +55,22 @@ namespace WowLauncher
         }
         private void Form1_Load(object sender, EventArgs e)
         {
-            Location = Properties.Settings.Default.WindowLocation;
-            Size = Properties.Settings.Default.WindowSize;
+            if (Properties.Settings.Default.WindowLocation.X <=
+                SystemInformation.VirtualScreen.Width - 10
+                && Properties.Settings.Default.WindowLocation.Y <=
+                SystemInformation.VirtualScreen.Height - 10
+                && Properties.Settings.Default.WindowLocation.X > 10
+                && Properties.Settings.Default.WindowLocation.Y > 10)
+            {
+                Location = Properties.Settings.Default.WindowLocation;
+            }
+            if (Properties.Settings.Default.WindowSize.Width <=
+                SystemInformation.VirtualScreen.Width
+                && Properties.Settings.Default.WindowSize.Height <=
+                SystemInformation.VirtualScreen.Height)
+            {
+                Size = Properties.Settings.Default.WindowSize;
+            }
             WindowState = Properties.Settings.Default.State;
 
             InitServerList();
