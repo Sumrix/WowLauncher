@@ -5,4 +5,4 @@
 https://github.com/DrXak/WowLauncher/releases/download/v1.0/WowLauncher.zip
 
 Превью:<br />
-![alt Preview](https://raw.githubusercontent.com/DrXak/Hunter/master/Preview.JPG)
+![alt Preview](https://raw.githubusercontent.com/DrXak/WowLauncher/master/Preview.JPG)
