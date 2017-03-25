@@ -7,6 +7,7 @@ using System.IO;
 using System.Xml.Serialization;
 using System.Diagnostics;
 using System.Xml;
+using Microsoft.VisualBasic;
 
 namespace WowLauncher
 {
@@ -272,22 +273,22 @@ namespace WowLauncher
 
                 object shDesktop = (object)"Desktop";
                 IWshRuntimeLibrary.WshShell shell = new IWshRuntimeLibrary.WshShell();
-                string shortcutAddress = (string)shell.SpecialFolders.Item(ref shDesktop) + @"\Notepad.lnk";
-                IWshRuntimeLibrary.IWshShortcut shortcut = (IWshRuntimeLibrary.IWshShortcut)shell.CreateShortcut(shortcutAddress);
-                shortcut.Description = server.ServerName;
-                shortcut.TargetPath = Process.GetCurrentProcess().MainModule.FileName;
-                shortcut.Arguments = "\"" + server.FileContent.Trim().Replace(Environment.NewLine, "{newline}") + "\"";
-                shortcut.Save();
+                string shortcutName = Interaction.InputBox("Введите название ярлыка", "Создание ярлыка");
+                if (shortcutName.Length > 0)
+                {
+                    string shortcutAddress = Path.Combine((string)shell.SpecialFolders.Item(ref shDesktop),
+                        shortcutName + ".lnk");
+                    IWshRuntimeLibrary.IWshShortcut shortcut = (IWshRuntimeLibrary.IWshShortcut)shell.CreateShortcut(shortcutAddress);
+                    shortcut.Description = server.ServerName;
+                    shortcut.TargetPath = Process.GetCurrentProcess().MainModule.FileName;
+                    shortcut.Arguments = "\"" + server.FileContent.Trim().Replace(Environment.NewLine, "{newline}") + "\"";
+                    shortcut.Save();
+                }
             }
         }
         private void shortCutButton_Click(object sender, EventArgs e)
         {
             CreateShortcut();
-        }
-
-        private void pictureBox1_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }
