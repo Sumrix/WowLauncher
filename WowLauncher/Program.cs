@@ -36,7 +36,7 @@ namespace WowLauncher
                 else
                 {
                     MessageBox.Show("Файл realmflist.wtf по указанному пути \"" +
-                        Properties.Settings.Default.RealmlistPath +
+                        Properties.Settings.Default.GamePath +
                         "\" не найден", "Ошибка запуска WowLauncher", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
