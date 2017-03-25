@@ -39,6 +39,7 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            this.Status = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.удалитьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
@@ -48,8 +49,10 @@
             this.exeTextBox = new System.Windows.Forms.TextBox();
             this.exeBrowseButton = new System.Windows.Forms.Button();
             this.openGameDialog = new System.Windows.Forms.OpenFileDialog();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.serverNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.serverBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.timer2 = new System.Windows.Forms.Timer(this.components);
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
@@ -123,6 +126,7 @@
             this.realmlistTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
             this.realmlistTextBox.Size = new System.Drawing.Size(208, 259);
             this.realmlistTextBox.TabIndex = 7;
+            this.realmlistTextBox.TextChanged += new System.EventHandler(this.realmlistTextBox_TextChanged);
             this.realmlistTextBox.Validating += new System.ComponentModel.CancelEventHandler(this.realmlistTextBox_Validating);
             // 
             // groupBox1
@@ -162,6 +166,7 @@
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.ColumnHeadersVisible = false;
             this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.Status,
             this.serverNameDataGridViewTextBoxColumn});
             this.dataGridView1.ContextMenuStrip = this.contextMenuStrip1;
             this.dataGridView1.DataSource = this.serverBindingSource;
@@ -170,9 +175,18 @@
             this.dataGridView1.Location = new System.Drawing.Point(3, 16);
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.RowHeadersVisible = false;
+            this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dataGridView1.Size = new System.Drawing.Size(361, 256);
             this.dataGridView1.TabIndex = 14;
             this.dataGridView1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.dataGridView1_KeyDown);
+            // 
+            // Status
+            // 
+            this.Status.HeaderText = "Status";
+            this.Status.Name = "Status";
+            this.Status.ReadOnly = true;
+            this.Status.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.Status.Width = 80;
             // 
             // contextMenuStrip1
             // 
@@ -265,6 +279,10 @@
             // 
             this.openGameDialog.Filter = "Launcher|*.exe";
             // 
+            // timer1
+            // 
+            this.timer1.Interval = 400;
+            // 
             // serverNameDataGridViewTextBoxColumn
             // 
             this.serverNameDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
@@ -276,6 +294,11 @@
             // serverBindingSource
             // 
             this.serverBindingSource.DataSource = typeof(WowLauncher.Server);
+            // 
+            // timer2
+            // 
+            this.timer2.Interval = 5000;
+            this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
             // 
             // Form1
             // 
@@ -323,7 +346,6 @@
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.BindingSource serverBindingSource;
-        private System.Windows.Forms.DataGridViewTextBoxColumn serverNameDataGridViewTextBoxColumn;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem удалитьToolStripMenuItem;
         private System.Windows.Forms.GroupBox groupBox4;
@@ -332,6 +354,10 @@
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.TextBox exeTextBox;
         private System.Windows.Forms.OpenFileDialog openGameDialog;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Status;
+        private System.Windows.Forms.DataGridViewTextBoxColumn serverNameDataGridViewTextBoxColumn;
+        private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Timer timer2;
     }
 }
 

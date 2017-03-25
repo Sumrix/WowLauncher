@@ -8,6 +8,11 @@ using System.Xml.Serialization;
 using System.Diagnostics;
 using System.Xml;
 using Microsoft.VisualBasic;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Net;
+using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace WowLauncher
 {
@@ -17,11 +22,16 @@ namespace WowLauncher
         private BindingList<Server> _servers;
         private bool _isValidRealmlistPath = false;
         private bool _isValidGamePath = false;
+        private Socket clientSocket = null;
+        private int _selectIndex;
+        private int changingIndex;
+        private Regex rx = new Regex(@"\S+?\.\S+", RegexOptions.IgnoreCase);
 
         public Form1()
         {
             InitializeComponent();
-            if (Properties.Settings.Default.RealmlistPath.Length == 0)
+            if (Properties.Settings.Default.RealmlistPath.Length == 0 ||
+                !File.Exists(Properties.Settings.Default.RealmlistPath))
             {
                 var installPath = Registry.GetValue(
                     @"HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Blizzard Entertainment\World of Warcraft", "InstallPath", null);
@@ -31,7 +41,8 @@ namespace WowLauncher
                         Path.Combine((string)installPath, @"Data\ruRu\realmlist.wtf");
                 }
             }
-            if (Properties.Settings.Default.GamePath.Length == 0)
+            if (Properties.Settings.Default.GamePath.Length == 0 ||
+                !File.Exists(Properties.Settings.Default.GamePath))
             {
                 var gamePath = Registry.GetValue(
                     @"HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Blizzard Entertainment\World of Warcraft", "GamePath", null);
@@ -83,14 +94,23 @@ namespace WowLauncher
             ValidateGamePath();
             ValidateRealmlistPath();
             ShowContent();
+            for (int i = 0; i < _servers.Count; i++)
+            {
+                CheckServer(i);
+            }
+            timer1.Tick += Timer1_Tick;
         }
         private void DataGridView1_SelectionChanged(object sender, EventArgs e)
         {
+            if (dataGridView1.CurrentRow != null)
+            {
+                _selectIndex = dataGridView1.CurrentRow.Index;
+            }
             ShowContent();
         }
         private void Servers_AddingNew(object sender, AddingNewEventArgs e)
         {
-            e.NewObject = new Server { ServerName = "Новый сервер", FileContent = "" };
+            e.NewObject = new Server { ServerName = "Добавить новый сервер", FileContent = "" };
         }
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -123,7 +143,10 @@ namespace WowLauncher
         }
         private void browseButton_Click(object sender, EventArgs e)
         {
-            openRealmlistDialog.InitialDirectory = Path.GetDirectoryName(Properties.Settings.Default.RealmlistPath);
+            if (File.Exists(Properties.Settings.Default.RealmlistPath))
+            {
+                openRealmlistDialog.InitialDirectory = Path.GetDirectoryName(Properties.Settings.Default.RealmlistPath);
+            }
             if (openRealmlistDialog.ShowDialog() == DialogResult.OK)
             {
                 filePathTextBox.Text = openRealmlistDialog.FileName;
@@ -147,7 +170,7 @@ namespace WowLauncher
         }
         private void SaveContent()
         {
-            if (dataGridView1.CurrentRow != null)
+            if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index == _selectIndex)
             {
                 Server server = _servers[dataGridView1.CurrentRow.Index];
                 server.FileContent = realmlistTextBox.Text;
@@ -156,6 +179,12 @@ namespace WowLauncher
                 {
                     File.WriteAllText(Properties.Settings.Default.RealmlistPath, realmlistTextBox.Text);
                 }
+
+                if (timer1.Enabled)
+                {
+                    timer1.Stop();
+                }
+                CheckServer(dataGridView1.CurrentRow.Index);
             }
         }
         private void dataGridView1_KeyDown(object sender, KeyEventArgs e)
@@ -255,7 +284,10 @@ namespace WowLauncher
         }
         private void exeBrowseButton_Click(object sender, EventArgs e)
         {
-            openGameDialog.InitialDirectory = Path.GetDirectoryName(Properties.Settings.Default.GamePath);
+            if (File.Exists(Properties.Settings.Default.GamePath))
+            {
+                openGameDialog.InitialDirectory = Path.GetDirectoryName(Properties.Settings.Default.GamePath);
+            }
             if (openGameDialog.ShowDialog() == DialogResult.OK)
             {
                 exeTextBox.Text = openGameDialog.FileName;
@@ -289,6 +321,96 @@ namespace WowLauncher
         private void shortCutButton_Click(object sender, EventArgs e)
         {
             CreateShortcut();
+        }
+        private void CheckServer(int index)
+        {
+            dataGridView1[0, index].Value = "проверка";
+            dataGridView1[0, index].Style.ForeColor = DefaultForeColor;
+
+            string name = _servers[index].ServerName;
+            var matches = rx.Matches(_servers[index].FileContent);
+            if (matches.Count > 0)
+            {
+                string selectedItem = matches[0].Value;
+                try
+                {
+                    if (selectedItem != "127.0.0.1" && selectedItem != "localhost")
+                    {
+                        IPAddress hostAddress = Dns.GetHostEntry(selectedItem).AddressList[0];
+
+                        switch (hostAddress.AddressFamily)
+                        {
+                            case AddressFamily.InterNetwork:
+                                clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                                break;
+                            case AddressFamily.InterNetworkV6:
+                                clientSocket = new Socket(AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
+                                break;
+                            default:
+                                return;
+                        }
+
+                        SocketAsyncEventArgs telnetSocketAsyncEventArgs = new SocketAsyncEventArgs();
+                        telnetSocketAsyncEventArgs.RemoteEndPoint = new IPEndPoint(hostAddress, 3724); //! Client port is always 3724 so this is safe
+                        telnetSocketAsyncEventArgs.Completed += (sender, e) =>
+                        {
+                            bool online = e.SocketError == SocketError.Success && e.LastOperation == SocketAsyncOperation.Connect;
+                            SetSelectedServerState(name, online);
+                        };
+                        clientSocket.ConnectAsync(telnetSocketAsyncEventArgs);
+                    }
+                    else
+                        //! If server is localhost, check if worldserver is running
+                        SetSelectedServerState(name, Process.GetProcessesByName("worldserver").Length > 0 && Process.GetProcessesByName("authserver").Length > 0);
+                }
+                catch (Exception e)
+                {
+                    SetSelectedServerState(name, false);
+                }
+            }
+            else
+            {
+                SetSelectedServerState(index, false);
+            }
+        }
+        private void SetSelectedServerState(string name, bool online)
+        {
+            int newIndex = _servers.ToList().FindIndex(x => x.ServerName == name);
+            SetSelectedServerState(newIndex, online);
+        }
+        private void SetSelectedServerState(int index, bool online)
+        {
+            if (online)
+            {
+                dataGridView1[0, index].Style.ForeColor = Color.Green;
+            }
+            else
+            {
+                dataGridView1[0, index].Style.ForeColor = Color.Red;
+            }
+            dataGridView1[0, index].Value = online ? "онлайн" : "офлайн";
+        }
+        private void realmlistTextBox_TextChanged(object sender, EventArgs e)
+        {
+            if (dataGridView1.CurrentRow != null && ((TextBox)sender).ContainsFocus)
+            {
+                timer1.Stop();
+                changingIndex = dataGridView1.CurrentRow.Index;
+                timer1.Start();
+            }
+        }
+        private void Timer1_Tick(object sender, EventArgs e)
+        {
+            timer1.Stop();
+            CheckServer(changingIndex);
+            SaveContent();
+        }
+        private void timer2_Tick(object sender, EventArgs e)
+        {
+            for (int i = 0; i < _servers.Count; i++)
+            {
+                CheckServer(i);
+            }
         }
     }
 }
