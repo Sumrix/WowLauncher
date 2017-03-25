@@ -30,6 +30,7 @@ namespace WowLauncher
         public Form1()
         {
             InitializeComponent();
+            Properties.Settings.Default.Upgrade();
             if (Properties.Settings.Default.RealmlistPath.Length == 0 ||
                 !File.Exists(Properties.Settings.Default.RealmlistPath))
             {
@@ -51,19 +52,6 @@ namespace WowLauncher
                     Properties.Settings.Default.GamePath = (string)gamePath;
                 }
             }
-        }
-        private void InitServerList()
-        {
-            XmlSerializer x = new XmlSerializer(typeof(BindingList<Server>));
-            using (TextReader writer = new StreamReader("servers.xml"))
-            {
-                _servers = (BindingList<Server>)x.Deserialize(writer);
-            }
-
-            _servers.AllowNew = true;
-            _servers.AllowRemove = true;
-            _servers.RaiseListChangedEvents = true;
-            _servers.AllowEdit = true;
         }
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -123,7 +111,7 @@ namespace WowLauncher
                 Properties.Settings.Default.WindowLocation = Location;
                 Properties.Settings.Default.WindowSize = Size;
             }
-
+            var name = Properties.Settings.Default.RealmlistPath;
             Properties.Settings.Default.Save();
 
             XmlWriterSettings settings = new XmlWriterSettings();
@@ -150,41 +138,27 @@ namespace WowLauncher
             if (openRealmlistDialog.ShowDialog() == DialogResult.OK)
             {
                 filePathTextBox.Text = openRealmlistDialog.FileName;
+                ValidateRealmlistPath();
+                if (File.Exists(openRealmlistDialog.FileName))
+                {
+                    Properties.Settings.Default.RealmlistPath = openRealmlistDialog.FileName;
+                }
             }
         }
-        private void ShowContent()
+        private void exeBrowseButton_Click(object sender, EventArgs e)
         {
-            if (dataGridView1.CurrentRow != null)
+            if (File.Exists(Properties.Settings.Default.GamePath))
             {
-                Server server = _servers[dataGridView1.CurrentRow.Index];
-                realmlistTextBox.Text = server.FileContent;
+                openGameDialog.InitialDirectory = Path.GetDirectoryName(Properties.Settings.Default.GamePath);
             }
-            else
+            if (openGameDialog.ShowDialog() == DialogResult.OK)
             {
-                realmlistTextBox.Text = "";
-            }
-            if (_isValidRealmlistPath)
-            {
-                File.WriteAllText(Properties.Settings.Default.RealmlistPath, realmlistTextBox.Text);
-            }
-        }
-        private void SaveContent()
-        {
-            if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index == _selectIndex)
-            {
-                Server server = _servers[dataGridView1.CurrentRow.Index];
-                server.FileContent = realmlistTextBox.Text;
-
-                if (_isValidRealmlistPath)
+                exeTextBox.Text = openGameDialog.FileName;
+                ValidateGamePath();
+                if (File.Exists(openGameDialog.FileName))
                 {
-                    File.WriteAllText(Properties.Settings.Default.RealmlistPath, realmlistTextBox.Text);
+                    Properties.Settings.Default.GamePath = openGameDialog.FileName;
                 }
-
-                if (timer1.Enabled)
-                {
-                    timer1.Stop();
-                }
-                CheckServer(dataGridView1.CurrentRow.Index);
             }
         }
         private void dataGridView1_KeyDown(object sender, KeyEventArgs e)
@@ -194,54 +168,9 @@ namespace WowLauncher
                 DeleteRowIfNotInEditMode();
             }
         }
-        private void DeleteRowIfNotInEditMode()
-        {
-            if (dataGridView1.CurrentRow != null && dataGridView1.CurrentCell != null && !dataGridView1.CurrentCell.IsInEditMode)
-            {
-                _servers.RemoveAt(dataGridView1.CurrentRow.Index);
-            }
-        }
         private void удалитьToolStripMenuItem_Click(object sender, EventArgs e)
         {
             DeleteRowIfNotInEditMode();
-        }
-        private bool ValidateRealmlistPath()
-        {
-            _isValidRealmlistPath = File.Exists(filePathTextBox.Text);
-            if (_isValidRealmlistPath)
-            {
-                panel1.BackColor = DefaultBackColor;
-                if (_isValidGamePath)
-                {
-                    startButton.Enabled = true;
-                }
-            }
-            else
-            {
-                startButton.Enabled = false;
-                panel1.BackColor = Color.Red;
-            }
-            return _isValidRealmlistPath;
-        }
-        private bool ValidateGamePath()
-        {
-            _isValidGamePath = File.Exists(exeTextBox.Text);
-            if (_isValidGamePath)
-            {
-                panel2.BackColor = DefaultBackColor;
-                if (_isValidRealmlistPath)
-                {
-                    startButton.Enabled = true;
-                }
-                shortCutButton.Enabled = true;
-            }
-            else
-            {
-                startButton.Enabled = false;
-                shortCutButton.Enabled = false;
-                panel2.BackColor = Color.Red;
-            }
-            return _isValidGamePath;
         }
         private void filePathTextBox_Validating(object sender, CancelEventArgs e)
         {
@@ -282,20 +211,128 @@ namespace WowLauncher
                 Process.Start(Properties.Settings.Default.GamePath);
             }
         }
-        private void exeBrowseButton_Click(object sender, EventArgs e)
-        {
-            if (File.Exists(Properties.Settings.Default.GamePath))
-            {
-                openGameDialog.InitialDirectory = Path.GetDirectoryName(Properties.Settings.Default.GamePath);
-            }
-            if (openGameDialog.ShowDialog() == DialogResult.OK)
-            {
-                exeTextBox.Text = openGameDialog.FileName;
-            }
-        }
         private void realmlistTextBox_Validating(object sender, CancelEventArgs e)
         {
             SaveContent();
+        }
+        private void shortCutButton_Click(object sender, EventArgs e)
+        {
+            CreateShortcut();
+        }
+        private void realmlistTextBox_TextChanged(object sender, EventArgs e)
+        {
+            if (dataGridView1.CurrentRow != null && ((TextBox)sender).ContainsFocus)
+            {
+                timer1.Stop();
+                changingIndex = dataGridView1.CurrentRow.Index;
+                timer1.Start();
+            }
+        }
+        private void Timer1_Tick(object sender, EventArgs e)
+        {
+            timer1.Stop();
+            CheckServer(changingIndex);
+            SaveContent();
+        }
+        private void timer2_Tick(object sender, EventArgs e)
+        {
+            for (int i = 0; i < _servers.Count; i++)
+            {
+                CheckServer(i);
+            }
+        }
+        private void ShowContent()
+        {
+            if (dataGridView1.CurrentRow != null)
+            {
+                Server server = _servers[dataGridView1.CurrentRow.Index];
+                realmlistTextBox.Text = server.FileContent;
+            }
+            else
+            {
+                realmlistTextBox.Text = "";
+            }
+            if (_isValidRealmlistPath)
+            {
+                File.WriteAllText(Properties.Settings.Default.RealmlistPath, realmlistTextBox.Text);
+            }
+        }
+        private void SaveContent()
+        {
+            if (dataGridView1.CurrentRow != null && dataGridView1.CurrentRow.Index == _selectIndex)
+            {
+                Server server = _servers[dataGridView1.CurrentRow.Index];
+                server.FileContent = realmlistTextBox.Text;
+
+                if (_isValidRealmlistPath)
+                {
+                    File.WriteAllText(Properties.Settings.Default.RealmlistPath, realmlistTextBox.Text);
+                }
+
+                if (timer1.Enabled)
+                {
+                    timer1.Stop();
+                }
+                CheckServer(dataGridView1.CurrentRow.Index);
+            }
+        }
+        private void InitServerList()
+        {
+            XmlSerializer x = new XmlSerializer(typeof(BindingList<Server>));
+            using (TextReader writer = new StreamReader("servers.xml"))
+            {
+                _servers = (BindingList<Server>)x.Deserialize(writer);
+            }
+
+            _servers.AllowNew = true;
+            _servers.AllowRemove = true;
+            _servers.RaiseListChangedEvents = true;
+            _servers.AllowEdit = true;
+        }
+        private void DeleteRowIfNotInEditMode()
+        {
+            if (dataGridView1.CurrentRow != null && dataGridView1.CurrentCell != null && !dataGridView1.CurrentCell.IsInEditMode)
+            {
+                _servers.RemoveAt(dataGridView1.CurrentRow.Index);
+            }
+        }
+        private bool ValidateRealmlistPath()
+        {
+            _isValidRealmlistPath = File.Exists(filePathTextBox.Text);
+            if (_isValidRealmlistPath)
+            {
+                panel1.BackColor = DefaultBackColor;
+                if (_isValidGamePath)
+                {
+                    startButton.Enabled = true;
+                }
+            }
+            else
+            {
+                startButton.Enabled = false;
+                panel1.BackColor = Color.Red;
+            }
+            return _isValidRealmlistPath;
+        }
+        private bool ValidateGamePath()
+        {
+            _isValidGamePath = File.Exists(exeTextBox.Text);
+            if (_isValidGamePath)
+            {
+                panel2.BackColor = DefaultBackColor;
+                if (_isValidRealmlistPath)
+                {
+                    startButton.Enabled = true;
+                }
+                shortCutButton.Enabled = true;
+            }
+            else
+            {
+                startButton.Enabled = false;
+                shortCutButton.Enabled = false;
+                panel2.BackColor = Color.Red;
+            }
+            return _isValidGamePath;
         }
         private void CreateShortcut()
         {
@@ -317,10 +354,6 @@ namespace WowLauncher
                     shortcut.Save();
                 }
             }
-        }
-        private void shortCutButton_Click(object sender, EventArgs e)
-        {
-            CreateShortcut();
         }
         private void CheckServer(int index)
         {
@@ -389,28 +422,6 @@ namespace WowLauncher
                 dataGridView1[0, index].Style.ForeColor = Color.Red;
             }
             dataGridView1[0, index].Value = online ? "онлайн" : "офлайн";
-        }
-        private void realmlistTextBox_TextChanged(object sender, EventArgs e)
-        {
-            if (dataGridView1.CurrentRow != null && ((TextBox)sender).ContainsFocus)
-            {
-                timer1.Stop();
-                changingIndex = dataGridView1.CurrentRow.Index;
-                timer1.Start();
-            }
-        }
-        private void Timer1_Tick(object sender, EventArgs e)
-        {
-            timer1.Stop();
-            CheckServer(changingIndex);
-            SaveContent();
-        }
-        private void timer2_Tick(object sender, EventArgs e)
-        {
-            for (int i = 0; i < _servers.Count; i++)
-            {
-                CheckServer(i);
-            }
         }
     }
 }

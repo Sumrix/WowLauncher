@@ -50,9 +50,9 @@
             this.exeBrowseButton = new System.Windows.Forms.Button();
             this.openGameDialog = new System.Windows.Forms.OpenFileDialog();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.timer2 = new System.Windows.Forms.Timer(this.components);
             this.serverNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.serverBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            this.timer2 = new System.Windows.Forms.Timer(this.components);
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
@@ -97,7 +97,7 @@
             // startButton
             // 
             this.startButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.startButton.Location = new System.Drawing.Point(487, 398);
+            this.startButton.Location = new System.Drawing.Point(487, 338);
             this.startButton.Margin = new System.Windows.Forms.Padding(3, 3, 0, 3);
             this.startButton.Name = "startButton";
             this.startButton.Size = new System.Drawing.Size(115, 23);
@@ -109,7 +109,7 @@
             // shortCutButton
             // 
             this.shortCutButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.shortCutButton.Location = new System.Drawing.Point(363, 398);
+            this.shortCutButton.Location = new System.Drawing.Point(363, 338);
             this.shortCutButton.Name = "shortCutButton";
             this.shortCutButton.Size = new System.Drawing.Size(115, 23);
             this.shortCutButton.TabIndex = 6;
@@ -124,7 +124,7 @@
             this.realmlistTextBox.Multiline = true;
             this.realmlistTextBox.Name = "realmlistTextBox";
             this.realmlistTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.realmlistTextBox.Size = new System.Drawing.Size(208, 259);
+            this.realmlistTextBox.Size = new System.Drawing.Size(208, 199);
             this.realmlistTextBox.TabIndex = 7;
             this.realmlistTextBox.TextChanged += new System.EventHandler(this.realmlistTextBox_TextChanged);
             this.realmlistTextBox.Validating += new System.ComponentModel.CancelEventHandler(this.realmlistTextBox_Validating);
@@ -137,7 +137,7 @@
             this.groupBox1.Controls.Add(this.realmlistTextBox);
             this.groupBox1.Location = new System.Drawing.Point(385, 114);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(214, 278);
+            this.groupBox1.Size = new System.Drawing.Size(214, 218);
             this.groupBox1.TabIndex = 10;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "realmlist";
@@ -151,7 +151,7 @@
             this.groupBox2.Controls.Add(this.dataGridView1);
             this.groupBox2.Location = new System.Drawing.Point(12, 114);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(367, 275);
+            this.groupBox2.Size = new System.Drawing.Size(367, 215);
             this.groupBox2.TabIndex = 11;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Сервера";
@@ -176,7 +176,7 @@
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.RowHeadersVisible = false;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView1.Size = new System.Drawing.Size(361, 256);
+            this.dataGridView1.Size = new System.Drawing.Size(361, 196);
             this.dataGridView1.TabIndex = 14;
             this.dataGridView1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.dataGridView1_KeyDown);
             // 
@@ -283,6 +283,11 @@
             // 
             this.timer1.Interval = 400;
             // 
+            // timer2
+            // 
+            this.timer2.Interval = 5000;
+            this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
+            // 
             // serverNameDataGridViewTextBoxColumn
             // 
             this.serverNameDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
@@ -295,16 +300,11 @@
             // 
             this.serverBindingSource.DataSource = typeof(WowLauncher.Server);
             // 
-            // timer2
-            // 
-            this.timer2.Interval = 5000;
-            this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(611, 433);
+            this.ClientSize = new System.Drawing.Size(611, 373);
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.groupBox3);
