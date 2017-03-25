@@ -289,6 +289,7 @@
             this.Controls.Add(this.startButton);
             this.Controls.Add(this.shortCutButton);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MinimumSize = new System.Drawing.Size(358, 239);
             this.Name = "Form1";
             this.Text = "WowLauncher";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
